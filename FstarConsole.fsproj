@@ -1,0 +1,16 @@
+<Project Sdk="FStarLang.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>5</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Test_Float.fs" />
+    <Compile Include="Test.Float.fsti" />
+
+    <Compile Include="Test.Program.fst" />
+  </ItemGroup>
+
+</Project>
