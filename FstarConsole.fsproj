@@ -10,6 +10,7 @@
     <Compile Include="Test_Float.fs" />
     <Compile Include="Test.Float.fsti" />
 
+    <Compile Include="Test.Coordinates.fst" />
     <Compile Include="Test.Program.fst" />
   </ItemGroup>
 
