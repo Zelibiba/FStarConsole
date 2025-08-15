@@ -25,6 +25,7 @@ let sub (a: float) (b: float) : float = a - b
 let neg (a: float) : float = -a
 let mul (a: float) (b: float) : float = a * b
 let div (a: float) (b: float) : float = a / b
+let inv (a: float) : float = 1f / a
 
 let gt (a: float) (b: float) = a > b
 let lt (a: float) (b: float) = a < b
@@ -32,12 +33,3 @@ let gte (a: float) (b: float) = a >= b
 let lte (a: float) (b: float) = a <= b
 
 let abs (a: float) : float = abs a
-
-let pi: float = System.Single.Pi
-let piHalf: float = System.Single.Pi / 2f
-
-let inline sin (x: float) : float = float.Sin(x / 180f * pi)
-let inline cos (x: float) : float = float.Cos(x / 180f * pi)
-let inline sinCos (x: float) : struct (float * float) = float.SinCos(x / 180f * pi)
-let inline arctg (x: float) (y: float) : float = float.Atan2(y, x) * 180f / pi
-let inline hypot (x: float) (y: float) : float = float.Hypot(x, y)
