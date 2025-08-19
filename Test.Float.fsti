@@ -21,9 +21,9 @@ private let ( +> ) (mp: mant_pow') (n: int) = (fst mp, snd mp + n)
 private let ( *< ) (mp: mant_pow') (n: int) = (fst mp * n, snd mp)
 private let ( /< ) (mp: mant_pow') (n: nonzero) = (fst mp / n, snd mp)
 private let ( >=< ) (a b: int) =
-  a > 0 && b > 0 ||
-  a = 0 && b = 0 ||
-  a < 0 && b < 0
+  a > 0 /\ b > 0 \/
+  a = 0 /\ b = 0 \/
+  a < 0 /\ b < 0
 
 let lemma_mant_mul (mp: mant_pow') (a b: int) : Lemma (mp *< a *< b = mp *< (a * b)) = ()
 
@@ -123,8 +123,8 @@ val add (a b: float) : Pure float
     let mant_a, pow_a = to_pair a in
     let mant_b, pow_b = to_pair b in
     let pow_min = min pow_a pow_b in
-    let a' = (mantissa a) * pow10 (pow_a - pow_min) in
-    let b' = (mantissa b) * pow10 (pow_b - pow_min) in
+    let a' = mant_a * pow10 (pow_a - pow_min) in
+    let b' = mant_b * pow10 (pow_b - pow_min) in
     to_pair c = norm_pair (a' + b', pow_min))
 
 val neg (a: float) : Pure float
@@ -176,10 +176,13 @@ unfold let (<.) a b = lt a b
 unfold let (>=.) a b = gte a b
 unfold let (<=.) a b = lte a b
 
-let lemma_gt_zero a b  : Lemma (a  >. b <==> a -. b  >. zero) = ()
-let lemma_lt_zero a b  : Lemma (a  <. b <==> a -. b  <. zero) = ()
-let lemma_gte_zero a b : Lemma (a >=. b <==> a -. b >=. zero) = ()
-let lemma_lte_zero a b : Lemma (a <=. b <==> a -. b <=. zero) = ()
+let lemma_gt_zero  () : Lemma (forall a b. a  >. b <==> a -. b  >. zero) = ()
+let lemma_lt_zero  () : Lemma (forall a b. a  <. b <==> a -. b  <. zero) = ()
+let lemma_gte_zero () : Lemma (forall a b. a >=. b <==> a -. b >=. zero) = ()
+let lemma_lte_zero () : Lemma (forall a b. a <=. b <==> a -. b <=. zero) = ()
+
+let lemma_gt_gte a b : Lemma (requires a >. b) (ensures a >=. b) = ()
+let lemma_lt_lte a b : Lemma (requires a <. b) (ensures a <=. b) = ()
 
 let lemma_gt_lt a b : Lemma (a <. b <==> b >. a) = ()
 let lemma_gte_lte a b : Lemma (a <=. b <==> b >=. a) = ()
@@ -187,7 +190,8 @@ let lemma_gte_lte a b : Lemma (a <=. b <==> b >=. a) = ()
 let lemma_commut_add a b : Lemma (a +. b = b +. a) = ()
 let lemma_commut_mul a b : Lemma (a *. b = b *. a) = ()
 
-let lemma_add_zero a : Lemma (a +. zero = a) = ()
+let lemma_add_zero a : Lemma (a +. zero = a /\ zero +. a = a) = ()
+let lemma_sub_zero a : Lemma (a -. zero = a) = ()
 let lemma_mul_one  a : Lemma (a *. one  = a) = ()
 let lemma_mul_zero a : Lemma (a *. zero = zero) = ()
 let lemma_div_one  a : Lemma (a /. one = a) = ()
@@ -203,24 +207,29 @@ let lemma_mul_neg_left (a b: float) : Lemma ((~.a) *. b = ~.(a *. b)) [SMTPat ((
 let lemma_mul_neg_right (a b: float) : Lemma (a *. (~.b) = ~.(a *. b)) [SMTPat (a *. (~.b))] =
   lemma_commut_mul a (~.b)
 
-let lemma_gt_neg  (a: float) : Lemma (a >.  zero <==> ~.a <. zero) = ()
-let lemma_gte_neg (a: float) : Lemma (a >=. zero <==> ~.a <=. zero) = ()
-let lemma_lt_neg  (a: float) : Lemma (a <.  zero <==> ~.a >. zero) = ()
-let lemma_lte_neg (a: float) : Lemma (a <=. zero <==> ~.a >=. zero) = ()
+let lemma_neg_neg a : Lemma (~.(~.a) = a) = ()
+let lemma_add_neg a : Lemma (a -. a = zero) = ()
+let lemma_sub_add a b : Lemma (a -. b = a +. ~.b) = ()
   
 let lemma_additive_add_left a b c : Lemma (a +. b +. c = (a +. b) +. c) = ()
-let lemma_additive_add_right a b c : Lemma (a +. b +. c = a +. (b +. c)) [SMTPat (a +. b +. c)] = assume (a +. b +. c = a +. (b +. c))
+let lemma_additive_add_right a b c : Lemma (a +. b +. c = a +. (b +. c)) = assume (a +. b +. c = a +. (b +. c))
+let lemma_additive_add_swap a b c : Lemma (a +. b +. c = a +. (c +. b) /\ a +. b +. c = a +. c +. b) =
+  lemma_additive_add_right a b c;
+  lemma_commut_add b c;
+  lemma_additive_add_right a c b
+let lemma_additive_add_sub a b c : Lemma (a +. b -. c = a -. c +. b /\ a +. b -. c = a +. (b -. c)) = 
+  lemma_sub_add (a +. b) c;
+  lemma_additive_add_right a b (~.c);
+  lemma_commut_add b (~.c);
+  lemma_additive_add_right a (~.c) b;
+  lemma_sub_add a c
 let lemma_additive_mul_left a b c : Lemma (a *. b *. c = (a *. b) *. c) = ()
 let lemma_additive_mul_right a b c : Lemma (a *. b *. c = a *. (b *. c)) [SMTPat (a *. b *. c)] = assume (a *. b *. c = a *. (b *. c))
 let lemma_distrib_add a b c : Lemma (a *. (b +. c) = a *. b +. a *. c) [SMTPat (a *. (b +. c))] = assume (a *. (b +. c) = a *. b +. a *. c)
 let lemma_distrib_sub a b c : Lemma (a *. (b -. c) = a *. b -. a *. c) [SMTPat (a *. (b -. c))] = ()
 
-let lemma_neg_neg a : Lemma (~.(~.a) = a) = ()
-let lemma_add_neg a : Lemma (a -. a = zero) = ()
-let lemma_sub_add a b : Lemma (a -. b = a +. ~.b) = ()
-
 let lemma_neg_mul a : Lemma (~.a = (~.one) *. a) = ()
-let lemma_distrib_neg a b : Lemma (~.a +. ~.b = ~.(a +. b)) =
+let lemma_distrib_neg a b : Lemma (~.(a +. b) = ~.a +. ~.b) =
   lemma_neg_mul (a +. b);
   assert (~.(a +. b) = ~.one *. (a +. b));
   lemma_distrib_add (~.one) a b;
@@ -235,37 +244,134 @@ let lemma_neg_sub a b : Lemma (a -. b = ~.(b -. a)) =
   lemma_commut_add (~.b) a;
   lemma_sub_add a b
 
-// стоит переписать через обобщённую функцию бинарных отношений
-let lemma_gt_additive a b c : Lemma (requires a >. b) (ensures a +. c >. b +. c) =
-  lemma_gt_zero a b;
-  assert (a -. b >. zero);
+
+type binrel = f: (float -> float -> bool){forall a b. a `f` b <==> (a -. b) `f` zero}
+
+let lemma_binrel_neg (f: binrel) a b : Lemma (f a b <==> f (~.b) (~.a)) =
+  lemma_neg_sub a b;
+  lemma_sub_add b a;
+  lemma_distrib_neg b (~.a);
+  lemma_neg_neg a;
+  assert (a -. b = ~.b -. ~.a)
+
+let lemma_gt_neg  (a b: float) : Lemma (a  >. b <==> ~.a  <. ~.b) = lemma_gt_zero  (); lemma_binrel_neg ( >.) a b
+let lemma_lt_neg  (a b: float) : Lemma (a  <. b <==> ~.a  >. ~.b) = lemma_lt_zero  (); lemma_binrel_neg ( <.) a b
+let lemma_gte_neg (a b: float) : Lemma (a >=. b <==> ~.a <=. ~.b) = lemma_gte_zero (); lemma_binrel_neg (>=.) a b
+let lemma_lte_neg (a b: float) : Lemma (a <=. b <==> ~.a >=. ~.b) = lemma_lte_zero (); lemma_binrel_neg (<=.) a b
+
+
+let lemma_binrel_additive (f: binrel) a b c : Lemma (requires f a b) (ensures f (a +. c) (b +. c)) =
   lemma_add_zero a;
-  lemma_commut_add a zero;
-  assert (a -. b = zero +. a -. b);
+  assert (a -. b = a +. zero -. b);
   lemma_add_neg c;
-  assert (a -. b = (c +. ~.c +. a) +. ~.b);
-  lemma_additive_add_right c (~.c) a;
-  lemma_commut_add (~.c) a;
-  lemma_additive_add_right c a (~.c);
-  assert (c +. ~.c +. a = c +. a +. ~.c);
-  lemma_commut_add c a;
+  lemma_additive_add_right a c (~.c);
   assert (a -. b = a +. c +. ~.c +. ~.b);
-  lemma_distrib_add (a +. c) (~.c) (~.b);
+  lemma_additive_add_right (a +. c) (~.c) (~.b);
   lemma_distrib_neg c b;
+  assert (a -. b = (a +. c) +. ~.(c +. b));
   lemma_sub_add (a +. c) (c +. b);
   lemma_commut_add c b;
-  assert (a -. b = (a +. c) -. (b +. c));
-  lemma_gt_zero (a +. c) (b +. c)
-let lemma_lt_additive a b c : Lemma (requires a <. b) (ensures a +. c <. b +. c) = lemma_gt_additive b a c
+  assert (a -. b = (a +. c) -. (b +. c))
 
-let lemma_gt_add a b c : Lemma (requires a >. c /\ b >. c) (ensures a +. b >. c) = ()
+let lemma_gt_additive  a b c : Lemma (requires a  >. b) (ensures a +. c  >. b +. c) = lemma_gt_zero  (); lemma_binrel_additive ( >.) a b c
+let lemma_lt_additive  a b c : Lemma (requires a  <. b) (ensures a +. c  <. b +. c) = lemma_lt_zero  (); lemma_binrel_additive ( <.) a b c
+let lemma_gte_additive a b c : Lemma (requires a >=. b) (ensures a +. c >=. b +. c) = lemma_gte_zero (); lemma_binrel_additive (>=.) a b c
+let lemma_lte_additive a b c : Lemma (requires a <=. b) (ensures a +. c <=. b +. c) = lemma_lte_zero (); lemma_binrel_additive (<=.) a b c
 
-let lemma_commut_gt a b c : Lemma (requires a >. b /\ b >. c) (ensures a >. c) =
-  lemma_gt_zero a b;
-  assert (a -. b >. zero);
-  
-  assume (a >. c);
-  ()
+let lemma_binrel_add_b (f: binrel) a b : Lemma (requires f b zero) (ensures f (a +. b) a) =
+  lemma_additive_add_sub a b a;
+  assert (a +. b -. a = a -. a +. b);
+  lemma_add_neg a;
+  lemma_add_zero b;
+  assert ((a +. b) -. a = b)
+
+let lemma_gt_add_b  a b : Lemma (requires b  >. zero) (ensures a +. b  >. a) = lemma_gt_zero  (); lemma_binrel_add_b ( >.) a b
+let lemma_lt_add_b  a b : Lemma (requires b  <. zero) (ensures a +. b  <. a) = lemma_lt_zero  (); lemma_binrel_add_b ( <.) a b
+let lemma_gte_add_b a b : Lemma (requires b >=. zero) (ensures a +. b >=. a) = lemma_gte_zero (); lemma_binrel_add_b (>=.) a b
+let lemma_lte_add_b a b : Lemma (requires b <=. zero) (ensures a +. b <=. a) = lemma_lte_zero (); lemma_binrel_add_b (<=.) a b
+
+
+let lemma_add_pos_nat a b : Lemma (requires a >. zero /\ b >=. zero) (ensures a +. b >. zero) =
+  let mant_a, pow_a = to_pair a in
+  let mant_b, pow_b = to_pair b in
+  let pow_min = min pow_a pow_b in
+  let a' = mant_a * pow10 (pow_a - pow_min) in
+  let b' = mant_b * pow10 (pow_b - pow_min) in
+  let c = norm_pair (a' + b', pow_min) in
+  assert (a +. b = of_pair c);
+  lemma_sub_zero a;
+  lemma_sub_zero b;
+  assert (mant_a > 0 /\ mant_b >= 0);
+  Lemmas.lemma_mult_lt_right (pow10 (pow_a - pow_min)) 0 mant_a;
+  Lemmas.lemma_mult_le_right (pow10 (pow_b - pow_min)) 0 mant_b;
+  assert (a' > 0 /\ b' >= 0);
+  assert (fst c > 0);
+  lemma_sub_zero (a +. b)
+
+let lemma_sub_pos_nat a b : Lemma (requires a <. zero /\ b <=. zero) (ensures a +. b <. zero) =
+  let mant_a, pow_a = to_pair a in
+  let mant_b, pow_b = to_pair b in
+  let pow_min = min pow_a pow_b in
+  let a' = mant_a * pow10 (pow_a - pow_min) in
+  let b' = mant_b * pow10 (pow_b - pow_min) in
+  let c = norm_pair (a' + b', pow_min) in
+  assert (a +. b = of_pair c);
+  lemma_sub_zero a;
+  lemma_sub_zero b;
+  assert (mant_a < 0 /\ mant_b <= 0);
+  Lemmas.lemma_mult_lt_right (pow10 (pow_a - pow_min)) mant_a 0;
+  Lemmas.lemma_mult_le_right (pow10 (pow_b - pow_min)) mant_b 0;
+  assert (a' < 0 /\ b' <= 0);
+  assert (fst c < 0);
+  lemma_sub_zero (a +. b)
+
+let lemma_commut_gte_gt a b c : Lemma (requires a >=. b /\ b >. c) (ensures a >. c) =
+  lemma_add_zero a;
+  lemma_add_neg b;
+  lemma_additive_add_sub a b b;
+  lemma_additive_add_sub (a -. b) b c;
+  lemma_commut_add (a -. b) (b -. c);
+  assert (a -. c = (b -. c) +. (a -. b));
+  lemma_gt_zero ();
+  lemma_gte_zero ();
+  lemma_add_pos_nat (b -. c) (a -. b);
+  assert (a -. c >. zero)
+
+let lemma_commut_gt_gte a b c : Lemma (requires a >. b /\ b >=. c) (ensures a >. c) =
+  lemma_add_zero a;
+  lemma_add_neg b;
+  lemma_additive_add_sub a b b;
+  lemma_additive_add_sub (a -. b) b c;
+  lemma_commut_add (a -. b) (b -. c);
+  assert (a -. c = (b -. c) +. (a -. b));
+  lemma_gt_zero ();
+  lemma_gte_zero ();
+  lemma_add_pos_nat (a -. b) (b -. c);
+  assert (a -. c >. zero)
+
+let lemma_gt_add a b c d : Lemma (requires a >. c /\ b >=. d) (ensures a +. b >. c +. d /\
+                                                                       a +. b >. d +. c /\
+                                                                       b +. a >. c +. d /\
+                                                                       b +. a >. d +. c) = 
+  lemma_sub_add (a +. b) (c +. d);
+  lemma_distrib_neg c d;
+  lemma_additive_add_right (a +. b) (~.c) (~.d);
+  assert ((a +. b) -. (c +. d) = a +. b +. ~.c +. ~.d);
+  lemma_additive_add_swap a b (~.c);
+  lemma_sub_add a c;
+  lemma_additive_add_right (a -. c) b (~.d);
+  lemma_sub_add b d;
+  assert ((a +. b) -. (c +. d) = (a -. c) +. (b -. d));
+  lemma_gte_zero ();
+  lemma_gte_add_b (a -. c) (b -. d);
+  assert ((a +. b) -. (c +. d) >=. a -. c);
+  lemma_gt_zero ();
+  assert (a -. c >. zero);
+  lemma_commut_gte_gt ((a +. b) -. (c +. d)) (a -. c) zero;
+  assert (a +. b >. c +. d);
+  lemma_commut_add a b;
+  lemma_commut_add c d
+
 
 // let lemma_div_inv a : Lemma (a /. a = one) = ()
 // let lemma_inv_inv a : Lemma (inv (inv a) = a) = ()
