@@ -192,7 +192,7 @@ let lemma_commut_mul a b : Lemma (a *. b = b *. a) = ()
 
 let lemma_add_zero a : Lemma (a +. zero = a /\ zero +. a = a) = ()
 let lemma_sub_zero a : Lemma (a -. zero = a) = ()
-let lemma_mul_one  a : Lemma (a *. one  = a) = ()
+let lemma_mul_one  a : Lemma (a *. one  = a /\ one *. a = a) = ()
 let lemma_mul_zero a : Lemma (a *. zero = zero) = ()
 let lemma_div_one  a : Lemma (a /. one = a) = ()
 
