@@ -46,7 +46,7 @@ val neg (a: float) : Pure float (requires True)
 val mul (a b: float) : Pure float (requires True)
   (ensures fun prod -> prod = of_pair (norm_pair { base = base a * base b; exp = exp a + exp b }))
 
-// val eq (a b: float)  : Pure bool (requires True) (ensures fun c -> c = (base (a `sub` b) = 0) /\ c = (a = b))
+val eq (a b: float)  : Pure bool (requires True) (ensures fun c -> c = (base (a `sub` b) = 0) /\ c = (a = b))
 val gt (a b: float)  : Pure bool (requires True) (ensures fun c -> c = (base (a `sub` b) > 0))
 val lt (a b: float)  : Pure bool (requires True) (ensures fun c -> c = (base (a `sub` b) < 0))
 val gte (a b: float) : Pure bool (requires True) (ensures fun c -> c = (base (a `sub` b) >= 0))
@@ -57,7 +57,7 @@ unfold let ( -. ) a b = sub a b
 unfold let ( ~. ) a   = neg a
 unfold let ( *. ) a b = mul a b
 // unfold let ( /. ) a b = div a b
-// unfold let (=.) a b = eq a b
+unfold let (=.) a b = eq a b
 unfold let (>.) a b = gt a b
 unfold let (<.) a b = lt a b
 unfold let (>=.) a b = gte a b

@@ -1,4 +1,4 @@
-module Test.Float
+module Test.Float1
 
 open FStar.Printf
 open FStar.Mul

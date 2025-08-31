@@ -39,6 +39,10 @@ let rec norm_pair (p': pair') : Ghost pair
   | _, _ -> p'
 
 
+let normalized_save_sign (p: pair) (p': pair') : Lemma
+  (requires p'.base <> 0 /\ p `normalized` p')
+  (ensures p'.base > 0 <==> p.base > 0 /\ p'.base < 0 <==> p.base < 0)
+  = ()
 
 let pair_mul_left (p: pair') a b : Lemma (p *| a *| b = p *| (a * b)) = ()
 

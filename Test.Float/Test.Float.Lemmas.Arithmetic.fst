@@ -1,4 +1,4 @@
-module Test.Float.Lemmas
+module Test.Float.Lemmas.Arithmetic
 
 open Test.Float.Pair
 open Test.Float.Base
@@ -30,33 +30,51 @@ let neg_is_zero_sub a : Lemma (~.a = zero -. a) =
   add_zero (~.a);
   sub_is_add_neg zero (~.a)
 
-let additive_add_left a b c : 
+let assoc_add_left a b c : 
   Lemma (a +. b +. c = (a +. b) +. c /\
          a +. b -. c = (a +. b) -. c /\
          a -. b +. c = (a -. b) +. c /\
          a -. b -. c = (a -. b) -. c)
   = ()
-let additive_add_right a b c :
+let assoc_add_right a b c :
   Lemma (a +. b +. c = a +. (b +. c) /\
          a +. b -. c = a +. (b -. c) /\
          a -. b +. c = a +. (c -. b) /\
          a -. b -. c = a -. (b +. c))
   = admit ()
-let additive_mul_left  a b c : Lemma (a *. b *. c = (a *. b) *. c) = ()
-let additive_mul_right a b c : Lemma (a *. b *. c = a *. (b *. c)) = admit ()
+let assoc_mul_left  a b c : Lemma (a *. b *. c = (a *. b) *. c) = ()
+let assoc_mul_right a b c : Lemma (a *. b *. c = a *. (b *. c)) = admit ()
 
 let distrib_add a b c :
   Lemma (a *. (b +. c) = a *. b +. a *. c /\
          a *. (b -. c) = a *. b -. a *. c)
   = admit ()
-let distrib_neg a b : Lemma (~.(a +. b) = ~.a +. ~.b) =
-  neg_is_mul_neg_one (a +. b);
-  distrib_add (~.one) a b;
-  neg_is_mul_neg_one a;
-  neg_is_mul_neg_one b
+let distrib_neg_add a b : Lemma (~.(a +. b) = ~.a +. ~.b /\
+                                 ~.(a -. b) = ~.a -. ~.b)
+  = 
+  let aux a b : Lemma (~.(a +. b) = ~.a +. ~.b) =
+    neg_is_mul_neg_one (a +. b);
+    distrib_add (~.one) a b;
+    neg_is_mul_neg_one a;
+    neg_is_mul_neg_one b
+  in
+  aux a b;
+  sub_is_add_neg a b;
+  aux a (~.b);
+  sub_is_add_neg (~.a) (~.b)
 
 let revert_sub a b : Lemma (a -. b = ~.(b -. a)) =
   sub_is_add_neg a b;
   double_neg a;
-  distrib_neg (~.a) b;
+  distrib_neg_add (~.a) b;
   sub_is_add_neg b a
+
+let distrib_neg_mul a b : Lemma (~.(a *. b) = (~.a) *. b /\
+                                 ~.(a *. b) = a *. (~.b)) =
+  let aux a b : Lemma (~.(a *. b) = (~.a) *. b) =
+    neg_is_mul_neg_one (a *. b); 
+    assoc_mul_right ~.one a b;
+    neg_is_mul_neg_one a
+  in aux a b; aux b a
+
+let sqr_eq a b : Lemma (requires a *. a = b *. b) (ensures a = b \/ a = ~.b) = admit ()
