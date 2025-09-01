@@ -30,17 +30,17 @@ instance b_lt  : binrel = { op = ( <.); intop = ( <); props = () }
 instance b_gte : binrel = { op = (>=.); intop = (>=); props = () }
 instance b_lte : binrel = { op = (<=.); intop = (<=); props = () }
 
-let binrel_neg {| binrel |} a b : Lemma (a <?> b <==> (~.b) <?> (~.a)) =
+let neg_binrel {| binrel |} a b : Lemma (a <?> b <==> (~.b) <?> (~.a)) =
   distrib_neg_add b a;
   revert_sub a b
 
-let gt_neg  a b : Lemma ((a  >. b <==> ~.b  >. ~.a) /\ (a  >. b <==> ~.a  <. ~.b)) = binrel_neg #b_gt  a b; gt_lt   ~.b ~.a
-let lt_neg  a b : Lemma ((a  <. b <==> ~.b  <. ~.a) /\ (a  <. b <==> ~.a  >. ~.b)) = binrel_neg #b_lt  a b; gt_lt   ~.a ~.b
-let gte_neg a b : Lemma ((a >=. b <==> ~.b >=. ~.a) /\ (a >=. b <==> ~.a <=. ~.b)) = binrel_neg #b_gte a b; gte_lte ~.b ~.a
-let lte_neg a b : Lemma ((a <=. b <==> ~.b <=. ~.a) /\ (a <=. b <==> ~.a >=. ~.b)) = binrel_neg #b_lte a b; gte_lte ~.a ~.b
+let gt_neg  a b : Lemma ((a  >. b <==> ~.b  >. ~.a) /\ (a  >. b <==> ~.a  <. ~.b)) = neg_binrel #b_gt  a b; gt_lt   ~.b ~.a
+let lt_neg  a b : Lemma ((a  <. b <==> ~.b  <. ~.a) /\ (a  <. b <==> ~.a  >. ~.b)) = neg_binrel #b_lt  a b; gt_lt   ~.a ~.b
+let gte_neg a b : Lemma ((a >=. b <==> ~.b >=. ~.a) /\ (a >=. b <==> ~.a <=. ~.b)) = neg_binrel #b_gte a b; gte_lte ~.b ~.a
+let lte_neg a b : Lemma ((a <=. b <==> ~.b <=. ~.a) /\ (a <=. b <==> ~.a >=. ~.b)) = neg_binrel #b_lte a b; gte_lte ~.a ~.b
 
 
-let binrel_additive {| binrel |} a b c : Lemma
+let additive_binrel {| binrel |} a b c : Lemma
   ((a <?> b <==> (a +. c) <?> (b +. c)) /\
    (a <?> b <==> (a -. c) <?> (b -. c)))
   =
@@ -59,7 +59,7 @@ let binrel_additive {| binrel |} a b c : Lemma
   aux a b (~.c)
 
 let binrel_to_sub {| binrel |} a b : Lemma (a <?> b <==> (a -. b) <?> zero) =
-  binrel_additive a b b;
+  additive_binrel a b b;
   sub_self b
 
 let distrib_gt_zero a b : Lemma (requires a >. zero /\ b >=. zero) (ensures a +. b >. zero) =
@@ -84,7 +84,7 @@ let distrib_lt_zero a b : Lemma (requires a <. zero /\ b <=. zero) (ensures a +.
   assert (~.(a +. b) >. zero);
   lt_neg (a +. b) zero
 
-class weak_pair = {
+class binrel_pair = {
   strong : binrel;
   weak: binrel;
   [@@@TC.no_method]
@@ -94,21 +94,21 @@ class weak_pair = {
   )
 }
 
-let (<??>) {| weak_pair |} a b = strong.op a b
-let (<?=>) {| weak_pair |} a b = weak.op a b
+let (<??>) {| binrel_pair |} a b = strong.op a b
+let (<?=>) {| binrel_pair |} a b = weak.op a b
 
-instance weak_gt : weak_pair = {
+instance weak_gt : binrel_pair = {
   strong = b_gt;
   weak = b_gte;
   props = introduce forall (a: float{a `b_gt.op` zero}) (b: float{b `b_gte.op` zero}). (a +. b) `b_gt.op` zero with distrib_gt_zero a b
 }
-instance weak_lt : weak_pair = {
+instance weak_lt : binrel_pair = {
   strong = b_lt;
   weak = b_lte;
   props = introduce forall (a: float{a `b_lt.op` zero}) (b: float{b `b_lte.op` zero}). (a +. b) `b_lt.op` zero with distrib_lt_zero a b
 }
 
-let binrel_commut {| wp: weak_pair |} a b c : Lemma (requires a <??> b /\ b <?=> c) (ensures a <??> c) =
+let commut_binrel_left {| bp: binrel_pair |} a b c : Lemma (requires a <??> b /\ b <?=> c) (ensures a <??> c) =
   add_zero a;
   sub_self (~.b);
   sub_is_add_neg (~.b) (~.b);
@@ -117,9 +117,21 @@ let binrel_commut {| wp: weak_pair |} a b c : Lemma (requires a <??> b /\ b <?=>
   assoc_add_right (a +. ~.b) b c;
   sub_is_add_neg a b;
   assert (a -. c = (a -. b) +. (b -. c));
-  binrel_to_sub #wp.strong a b;
-  binrel_to_sub #wp.weak b c;
-  binrel_to_sub #wp.strong a c
+  binrel_to_sub #bp.strong a b;
+  binrel_to_sub #bp.weak b c;
+  binrel_to_sub #bp.strong a c
 
-let commut_gt_gte a b c : Lemma (requires a >. b /\ b >=. c) (ensures a >. c) = binrel_commut #weak_gt a b c
-let commut_lt_lte a b c : Lemma (requires a <. b /\ b <=. c) (ensures a <. c) = binrel_commut #weak_lt a b c
+let commut_binrel_right {| bp: binrel_pair |} a b c : Lemma (requires a <?=> b /\ b <??> c) (ensures a <??> c) =
+  neg_binrel #bp.weak a b;
+  neg_binrel #bp.strong b c;
+  commut_binrel_left (~.c) (~.b) (~.a);
+  neg_binrel #bp.strong a c
+
+
+let commut_gt_gte a b c : Lemma (requires a >. b /\ b >=. c) (ensures a >. c) = commut_binrel_left #weak_gt a b c
+let commut_lt_lte a b c : Lemma (requires a <. b /\ b <=. c) (ensures a <. c) = commut_binrel_left #weak_lt a b c
+
+let binrel_commut_weak {| binrel_pair |} a b c : Lemma (requires a <?=> b /\ b <?=> c) (ensures a <?=> c) =
+  match a =. b with
+  | true -> ()
+  | false -> commut_binrel_left a b c
