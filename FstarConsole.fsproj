@@ -7,10 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Test_Float.fs" />
-    <Compile Include="Test.Float.fsti" />
+    <Compile Include="Test.Float.Pair.fst" />
+    <Compile Include="Test_Float_Base.fs" />
+    <Compile Include="Test.Float.Base.fsti" />
+    <Compile Include="Test.Float.Lemmas.Arithmetic.fst" />
+    <Compile Include="Test.Float.Lemmas.Inequality.fst" />
+    <Compile Include="Test.Float.Ranges.fst" />
+    <Compile Include="Test_Float_Trigonometry.fs" />
+    <Compile Include="Test.Float.Trigonometry.fsti" />
+    <Compile Include="Test.Float.fst" />
 
-    <Compile Include="Test.Coordinates.fst" />
     <Compile Include="Test.Program.fst" />
   </ItemGroup>
 

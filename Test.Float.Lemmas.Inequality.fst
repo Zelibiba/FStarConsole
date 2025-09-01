@@ -72,7 +72,7 @@ let distrib_gt_zero a b : Lemma (requires a >. zero /\ b >=. zero) (ensures a +.
   assert (a' + b' > 0);
 
   let c = a +. b in
-  normalized_save_sign (to_pair c) { base = a' + b'; exp = exp_min };
+  normalized_save_sign (to_pair c) ({ base = a' + b'; exp = exp_min });
   assert (base c > 0)
 
 let distrib_lt_zero a b : Lemma (requires a <. zero /\ b <=. zero) (ensures a +. b <. zero) =

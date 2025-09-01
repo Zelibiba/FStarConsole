@@ -1,6 +1,6 @@
 module Test.Float.Ranges
 
-open Test.Float.Base
+include Test.Float.Base
 open Test.Float.Lemmas.Arithmetic
 open Test.Float.Lemmas.Inequality
 
@@ -48,6 +48,8 @@ let (<.|> ) x (left, right) = x |-> { l = (Closed left); r = (Opened right) }
 let ( <|.>) x (left, right) = x |-> { l = (Opened left); r = (Closed right) }
 let (<.|.>) x (left, right) = x |-> { l = (Closed left); r = (Closed right) }
 let ( <|> ) x (left, right) = x |-> { l = (Opened left); r = (Opened right) }
+let ( .[] ) = (<.|.>)
+let ( .() ) = ( <|> )
 
 let ( |=> ) (less more: range) =
   less.l >>.< more.l /\

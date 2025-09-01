@@ -1,11 +1,19 @@
 module Test.Float.Base
 
-open Test.Float.Pair
-// open FStar.Printf
+include Test.Float.Pair
+open FStar.Printf
 open FStar.Mul
 
 
 new val float : eqtype
+
+val to_string : float -> string
+
+private let extension = MkExtension #float to_string
+let float_extension : extension_parser = fun s ->
+  match s with
+  | 'f'::tl -> Some (extension, tl)
+  | _ -> None
 
 val to_pair (x: float) : pair
 val of_pair (p: pair) : float
@@ -15,10 +23,10 @@ let exp x : GTot int = (to_pair x).exp
 
 
 
-val of_int (x: int) : (r: float{r = of_pair (norm_pair { base = x; exp = 0 })})
+val of_int (x: int) : (r: float{r = of_pair (norm_pair ({ base = x; exp = 0 }))})
 
-val zero : (z: float{z = of_pair { base = 0; exp = 0 }})
-val one  : (o: float{o = of_pair { base = 1; exp = 0 }})
+val zero : (z: float{z = of_pair ({ base = 0; exp = 0 })})
+val one  : (o: float{o = of_pair ({ base = 1; exp = 0 })})
 
 type notzero = (nz: float{nz <> zero})
 
@@ -33,18 +41,18 @@ let to_shared_exp (a b: float) : GTot (int & int & int) =
 val add (a b: float) : Pure float (requires True)
   (ensures fun sum -> 
     let a', b', exp_min = to_shared_exp a b in
-    sum = of_pair (norm_pair { base = a' + b'; exp = exp_min }))
+    sum = of_pair (norm_pair ({ base = a' + b'; exp = exp_min })))
 
 val sub (a b: float) : Pure float (requires True)
   (ensures fun diff -> 
     let a', b', exp_min = to_shared_exp a b in
-    to_pair diff = norm_pair { base = a' - b'; exp = exp_min })
+    to_pair diff = norm_pair ({ base = a' - b'; exp = exp_min }))
 
 val neg (a: float) : Pure float (requires True)
   (ensures fun neg -> base neg = -(base a) /\ exp neg = exp a)
 
 val mul (a b: float) : Pure float (requires True)
-  (ensures fun prod -> prod = of_pair (norm_pair { base = base a * base b; exp = exp a + exp b }))
+  (ensures fun prod -> prod = of_pair (norm_pair ({ base = base a * base b; exp = exp a + exp b })))
 
 val eq (a b: float)  : Pure bool (requires True) (ensures fun c -> c = (base (a `sub` b) = 0) /\ c = (a = b))
 val gt (a b: float)  : Pure bool (requires True) (ensures fun c -> c = (base (a `sub` b) > 0))

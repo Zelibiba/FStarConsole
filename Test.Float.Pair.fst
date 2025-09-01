@@ -80,8 +80,8 @@ let rec norm_pair_pow10 (n: nat) (p': pair') : Lemma
 
 let norm_pow10 (n: nat) (base exp: int) : Lemma
   (requires base % 10 <> 0)
-  (ensures norm_pair { base = base * pow10 n; exp = exp } =
+  (ensures norm_pair ({ base = base * pow10 n; exp = exp }) =
                      { base = base; exp = exp + n })
-  [SMTPat (norm_pair { base = base * pow10 n; exp = exp })]
+  [SMTPat (norm_pair ({ base = base * pow10 n; exp = exp }))]
   =
-  norm_pair_pow10 n { base = base; exp = exp }
+  norm_pair_pow10 n ({ base = base; exp = exp })

@@ -1,20 +1,21 @@
-module Test_Float
+module Test_Float_Base
 open System.Numerics
+open Test_Float_Pair
 
 type float = System.Single
 
 
 let to_string (x: float) : string = x.ToString()
 
-let to_pair (x: float) : BigInteger * BigInteger =
+let to_pair (x: float) : pair =
     Seq.initInfinite (fun exp ->
         let x' = x * single (pown 10 exp)
         exp, x')
     |> Seq.pick (fun (exp, value) ->
         if System.Single.IsInteger value
-        then Some (BigInteger value, BigInteger -exp)
+        then Some ({ base1 = BigInteger value; exp = BigInteger -exp })
         else None)
-let of_pair (mant: BigInteger, exp: BigInteger) : float = System.Single.Parse $"{mant}e{exp}"
+let of_pair (pair: pair') : float = System.Single.Parse $"{pair.base1}e{pair.exp}"
 let of_int (x: BigInteger) : float = single x
 
 let zero : float = 0f
