@@ -18,8 +18,8 @@ let to_pair (x: float) : pair =
 let of_pair (pair: pair') : float = System.Single.Parse $"{pair.base1}e{pair.exp}"
 let of_int (x: BigInteger) : float = single x
 
-let zero : float = 0f
-let one : float = 1f
+let _0 : float = 0f
+let _1 : float = 1f
 
 let add (a: float) (b: float) : float = a + b
 let sub (a: float) (b: float) : float = a - b

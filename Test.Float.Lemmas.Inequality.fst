@@ -58,11 +58,11 @@ let additive_binrel {| binrel |} a b c : Lemma
   sub_is_add_neg b c;
   aux a b (~.c)
 
-let binrel_to_sub {| binrel |} a b : Lemma (a <?> b <==> (a -. b) <?> zero) =
+let binrel_to_sub {| binrel |} a b : Lemma (a <?> b <==> (a -. b) <?> _0) =
   additive_binrel a b b;
   sub_self b
 
-let distrib_gt_zero a b : Lemma (requires a >. zero /\ b >=. zero) (ensures a +. b >. zero) =
+let distrib_gt_zero a b : Lemma (requires a >. _0 /\ b >=. _0) (ensures a +. b >. _0) =
   let a', b', exp_min = to_shared_exp a b in
   sub_zero a;
   sub_zero b;
@@ -75,14 +75,14 @@ let distrib_gt_zero a b : Lemma (requires a >. zero /\ b >=. zero) (ensures a +.
   normalized_save_sign (to_pair c) ({ base = a' + b'; exp = exp_min });
   assert (base c > 0)
 
-let distrib_lt_zero a b : Lemma (requires a <. zero /\ b <=. zero) (ensures a +. b <. zero) =
-  lt_neg a zero;
-  lte_neg b zero;
-  assert (~.a >. zero /\ ~.b >=. zero);
+let distrib_lt_zero a b : Lemma (requires a <. _0 /\ b <=. _0) (ensures a +. b <. _0) =
+  lt_neg a _0;
+  lte_neg b _0;
+  assert (~.a >. _0 /\ ~.b >=. _0);
   distrib_gt_zero (~.a) (~.b);
   distrib_neg_add a b;
-  assert (~.(a +. b) >. zero);
-  lt_neg (a +. b) zero
+  assert (~.(a +. b) >. _0);
+  lt_neg (a +. b) _0
 
 class binrel_pair = {
   strong : binrel;
@@ -90,7 +90,7 @@ class binrel_pair = {
   [@@@TC.no_method]
   props : squash (
     (forall a b. weak.op a b <==> (strong.op a b \/ a =. b)) /\
-    (forall (a: float{strong.op a zero}) (b: float{weak.op b zero}). strong.op (a +. b) zero)
+    (forall (a: float{strong.op a _0}) (b: float{weak.op b _0}). strong.op (a +. b) _0)
   )
 }
 
@@ -100,13 +100,17 @@ let (<?=>) {| binrel_pair |} a b = weak.op a b
 instance weak_gt : binrel_pair = {
   strong = b_gt;
   weak = b_gte;
-  props = introduce forall (a: float{a `b_gt.op` zero}) (b: float{b `b_gte.op` zero}). (a +. b) `b_gt.op` zero with distrib_gt_zero a b
+  props = introduce forall (a: float{a `b_gt.op` _0}) (b: float{b `b_gte.op` _0}). (a +. b) `b_gt.op` _0 with distrib_gt_zero a b
 }
 instance weak_lt : binrel_pair = {
   strong = b_lt;
   weak = b_lte;
-  props = introduce forall (a: float{a `b_lt.op` zero}) (b: float{b `b_lte.op` zero}). (a +. b) `b_lt.op` zero with distrib_lt_zero a b
+  props = introduce forall (a: float{a `b_lt.op` _0}) (b: float{b `b_lte.op` _0}). (a +. b) `b_lt.op` _0 with distrib_lt_zero a b
 }
+
+let weak_to_strong {| binrel_pair |} a b : Lemma (requires a <?=> b /\ ~(a =. b)) (ensures a <??> b) = ()
+let gte_to_gt a b : Lemma (requires a >=. b /\ ~(a =. b)) (ensures a >. b) = ()
+let lte_to_lt a b : Lemma (requires a <=. b /\ ~(a =. b)) (ensures a <. b) = ()
 
 let commut_binrel_left {| bp: binrel_pair |} a b c : Lemma (requires a <??> b /\ b <?=> c) (ensures a <??> c) =
   add_zero a;

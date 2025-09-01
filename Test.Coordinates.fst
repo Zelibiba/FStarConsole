@@ -1,13 +1,12 @@
 module Test.Coordinates
 
 open Test.Float
-open Test.Float.Trigonometry
 
-type azType = (az: float{az <.|> (~.pi, pi)})
+type azType = (az: float{az <.|> (~._180, _180)})
 type psk : eqtype =
   {
-    az: azType;
-    um: (um: float{um.(~.piHalf, piHalf)})
+    az: float; //azType;
+    um: (um: float{um.(~._90, _90)})
   }
 type cart : eqtype = { x: float; y: float; z: float}
 
@@ -21,21 +20,28 @@ let cart2psk (coord: cart) =
   let az = arctg coord.x coord.y in
   let um = arctg (hypot coord.x coord.y) coord.z in
   let az' = 
-    match az =. pi with
-    | true -> ~.pi
-    | _ -> az
-  in { az = az'; um = um }
+    match az =. _180 with
+    | true -> ~._180
+    | false -> az
+  in
+  assert (az <=. _180);
+  // assert (~._180 = of_int (-180));
+  assert (~._180 <. _0)
+  // assert (az' <=. _180)
+  // assert (~(az' =. _180));
+  // assert (az' <. _180);
+  // { az = az'; um = um }
 
-let lemma_hypot_cos (h: float) (cos: float{cos >. zero}) : Lemma 
-  (requires h *. h = cos *. cos /\ h >=. zero)
+let lemma_hypot_cos (h: float) (cos: float{cos >. _0}) : Lemma 
+  (requires h *. h = cos *. cos /\ h >=. _0)
   (ensures h = cos)
   =
   lemma_sqr_eq h cos;
-  lemma_lte_neg cos zero;
-  assert (~.cos >=. zero <==> cos <=. zero);
+  lemma_lte_neg cos _0;
+  assert (~.cos >=. _0 <==> cos <=. _0);
   assert (h = cos)
 
-let lemma_one_zero () : Lemma (one <> zero) = ()
+let lemma_one_zero () : Lemma (_1 <> _0) = ()
 
 let lemma_psk2cart (p: psk) : Lemma (cart2psk (psk2cart p) = p) [SMTPat (psk2cart p)] =
   let c = psk2cart p in
@@ -52,7 +58,7 @@ let lemma_psk2cart (p: psk) : Lemma (cart2psk (psk2cart p) = p) [SMTPat (psk2car
   assert (h *. h = (cos p.um *. cos p.um) *. ((cos p.az *. cos p.az) +. (sin p.az *. sin p.az)));
   lemma_commut_add (cos p.az *. cos p.az) (sin p.az *. sin p.az);
   lemma_osn_trig_todj p.az;
-  assert (h *. h = one *. cos p.um *. cos p.um);
+  assert (h *. h = _1 *. cos p.um *. cos p.um);
   lemma_mul_one (cos p.um);
   assert (h *. h = cos p.um *. cos p.um);
   lemma_hypot_cos h (cos p.um);
@@ -62,5 +68,5 @@ let lemma_psk2cart (p: psk) : Lemma (cart2psk (psk2cart p) = p) [SMTPat (psk2car
   lemma_one_zero ();
   lemma_mul_one (cos p.um);
   lemma_mul_one (sin p.um);
-  lemma_arctg p.um one;
+  lemma_arctg p.um _1;
   assert (p'.um = p.um)

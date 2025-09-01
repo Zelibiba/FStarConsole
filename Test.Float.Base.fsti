@@ -25,10 +25,10 @@ let exp x : GTot int = (to_pair x).exp
 
 val of_int (x: int) : (r: float{r = of_pair (norm_pair ({ base = x; exp = 0 }))})
 
-val zero : (z: float{z = of_pair ({ base = 0; exp = 0 })})
-val one  : (o: float{o = of_pair ({ base = 1; exp = 0 })})
+val _0 : (z: float{z = of_pair ({ base = 0; exp = 0 })})
+val _1  : (o: float{o = of_pair ({ base = 1; exp = 0 })})
 
-type notzero = (nz: float{nz <> zero})
+type not_0 = (nz: float{nz <> _0})
 
 let to_shared_exp (a b: float) : GTot (int & int & int) =
   let { base = base_a; exp = exp_a } = to_pair a in
