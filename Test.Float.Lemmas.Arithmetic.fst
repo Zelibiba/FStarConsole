@@ -9,8 +9,8 @@ let of_to_inj (x: float) : Lemma (of_pair (to_pair x) = x) [SMTPat (to_pair x)]
 let to_of_inj (p: pair) : Lemma (to_pair (of_pair p) = p) [SMTPat (of_pair p)]
   = admit ()
 
-let commut_add a b : Lemma (a +. b = b +. a) = ()
-let commut_mul a b : Lemma (a *. b = b *. a) = ()
+let commut_add a b : Lemma (a +. b = b +. a) [SMTPat (a +. b)] = ()
+let commut_mul a b : Lemma (a *. b = b *. a) [SMTPat (a *. b)] = ()
 
 let add_zero a : Lemma (a +. _0 = a /\ _0 +. a = a) = ()
 let sub_zero a : Lemma (a -. _0 = a) = ()
@@ -44,6 +44,13 @@ let assoc_add_right a b c :
   = admit ()
 let assoc_mul_left  a b c : Lemma (a *. b *. c = (a *. b) *. c) = ()
 let assoc_mul_right a b c : Lemma (a *. b *. c = a *. (b *. c)) = admit ()
+let commut_tri_mul a b c : 
+  Lemma (a *. b *. c = b *. a *. c /\
+         a *. b *. c = c *. a *. b /\
+         a *. b *. c = b *. c *. a /\
+         a *. b *. c = c *. b *. a /\
+         a *. b *. c = a *. c *. b)
+  = admit ()
 
 let distrib_add a b c :
   Lemma (a *. (b +. c) = a *. b +. a *. c /\
