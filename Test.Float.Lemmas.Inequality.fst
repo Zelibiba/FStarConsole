@@ -112,6 +112,10 @@ let weak_to_strong {| binrel_pair |} a b : Lemma (requires a <?=> b /\ ~(a =. b)
 let gte_to_gt a b : Lemma (requires a >=. b /\ ~(a =. b)) (ensures a >. b) = ()
 let lte_to_lt a b : Lemma (requires a <=. b /\ ~(a =. b)) (ensures a <. b) = ()
 
+let binrel_distrib_weak_0 {| binrel_pair |} a b : Lemma (requires a <?=> _0 /\ b <?=> _0) (ensures (a +. b) <?=> _0) = ()
+let distrib_gte_0 a b : Lemma (requires a >=. _0 /\ b >=. _0) (ensures (a +. b) >=. _0) = binrel_distrib_weak_0 #weak_gt a b
+let distrib_lte_0 a b : Lemma (requires a <=. _0 /\ b <=. _0) (ensures (a +. b) <=. _0) = binrel_distrib_weak_0 #weak_lt a b
+
 let commut_binrel_left {| bp: binrel_pair |} a b c : Lemma (requires a <??> b /\ b <?=> c) (ensures a <??> c) =
   add_zero a;
   sub_self (~.b);
@@ -144,3 +148,19 @@ let commut_binrel_weak {| binrel_pair |} a b c : Lemma (requires a <?=> b /\ b <
 
 let commut_gte_gte a b c : Lemma (requires a >=. b /\ b >=. c) (ensures a >=. c) = commut_binrel_weak #weak_gt a b c
 let commut_lte_lte a b c : Lemma (requires a <=. b /\ b <=. c) (ensures a <=. c) = commut_binrel_weak #weak_lt a b c
+
+let sqr_gt_0' a : Lemma (requires a <> _0) (ensures a *. a >. _0) =
+  assert (a <> _0);
+  let p' = { base = base a * base a; exp = exp a + exp a } in
+  normalized_save_sign (norm_pair p') p';
+  assert (base (a *. a) > 0)
+  
+let sqr_gt_0 a : Lemma (a *. a >=. _0) [SMTPat (a *. a)] =
+  match a =. _0 with
+  | true -> sub_zero a; assert (base a = 0); assert (a *. a = _0)
+  | false -> assert (a <> _0); sqr_gt_0' a
+
+let sqr_eq a b : Lemma (requires a = sqrt (b *. b))
+  (ensures (b >=. _0 <==> a = b) /\ (b <=. _0 <==> a = ~.b)) = admit ()
+
+let is_sqrt s a : Lemma (requires a >=. _0 /\ s >=. _0 /\ s *. s = a) (ensures s = sqrt a) = admit ()

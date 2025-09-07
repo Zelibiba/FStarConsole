@@ -70,3 +70,8 @@ unfold let (>.) a b = gt a b
 unfold let (<.) a b = lt a b
 unfold let (>=.) a b = gte a b
 unfold let (<=.) a b = lte a b
+
+let sqr x = x *. x
+
+val sqrt (a: float) : Pure float (requires a >=. _0)
+  (ensures fun sqrt -> sqrt >=. _0 /\ sqrt *. sqrt = a /\ (sqrt = _0 <==> a = _0))

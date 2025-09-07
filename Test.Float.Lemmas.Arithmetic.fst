@@ -45,11 +45,11 @@ let assoc_add_right a b c :
 let assoc_mul_left  a b c : Lemma (a *. b *. c = (a *. b) *. c) = ()
 let assoc_mul_right a b c : Lemma (a *. b *. c = a *. (b *. c)) = admit ()
 let commut_tri_mul a b c : 
-  Lemma (a *. b *. c = b *. a *. c /\
-         a *. b *. c = c *. a *. b /\
-         a *. b *. c = b *. c *. a /\
-         a *. b *. c = c *. b *. a /\
-         a *. b *. c = a *. c *. b)
+  Lemma (a *. b *. c = b *. a *. c /\ a *. b *. c = b *. (a *. c) /\
+         a *. b *. c = c *. a *. b /\ a *. b *. c = c *. (a *. b) /\
+         a *. b *. c = b *. c *. a /\ a *. b *. c = b *. (c *. a) /\
+         a *. b *. c = c *. b *. a /\ a *. b *. c = c *. (b *. a) /\
+         a *. b *. c = a *. c *. b /\ a *. b *. c = a *. (c *. b))
   = admit ()
 
 let distrib_add a b c :
@@ -83,5 +83,3 @@ let distrib_neg_mul a b : Lemma (~.(a *. b) = (~.a) *. b /\
     assoc_mul_right ~._1 a b;
     neg_is_mul_neg_one a
   in aux a b; aux b a
-
-let sqr_eq a b : Lemma (requires a *. a = b *. b) (ensures a = b \/ a = ~.b) = admit ()

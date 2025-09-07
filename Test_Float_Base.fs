@@ -33,4 +33,5 @@ let lt (a: float) (b: float) = a < b
 let gte (a: float) (b: float) = a >= b
 let lte (a: float) (b: float) = a <= b
 
-let abs (a: float) : float = abs a
+let sqr (a: float) : float = a * a
+let sqrt (a: float) : float = float.Sqrt a
